@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Determine current view
-$view = 'register';
+$view = 'home'; // Default to home page
 if (isset($_GET['view'])) {
     $view = $_GET['view'];
 } elseif (isset($_SESSION['user'])) {
@@ -155,15 +155,17 @@ if (isset($_GET['view'])) {
     <title>PowerHouse Gym Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #00aaff;
             --primary-hover: #0088cc;
-            --base-bg: #11131e; /* Deep dark base background */
-            --light-bg: #2a2a4a;
-            --card-bg: rgba(30, 34, 56, 0.6); /* Slightly more opaque for better readability */
+            --accent-color: #ff6b6b;
+            --dark-bg: #0d0f17;
+            --darker-bg: #090b12;
+            --light-bg: #1a1d2b;
+            --card-bg: rgba(26, 29, 43, 0.8);
             --text-light: #f0f0f0;
             --text-dark: #333;
             --text-muted: #a0a0c0;
@@ -180,23 +182,29 @@ if (isset($_GET['view'])) {
         }
 
         body {
-            /* New Thematic Gym Background */
-            background-color: var(--base-bg);
-            /* Layering a dark gradient OVER the image for readability */
-            background-image:
-                    linear-gradient(rgba(17, 19, 30, 0.85), rgba(17, 19, 30, 0.85)),
-                    url('http://googleusercontent.com/image_generation_content/0');
-
-            background-size: cover; /* Cover the entire page */
-            background-position: center center; /* Center the image */
-            background-attachment: fixed; /* Fix the background on scroll (parallax effect) */
-
+            background-color: var(--dark-bg);
             color: var(--text-light);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                    radial-gradient(circle at 10% 20%, rgba(13, 15, 23, 0.8) 0%, rgba(13, 15, 23, 0.9) 100%),
+                    url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center/cover;
+            z-index: -1;
+            filter: brightness(0.5) contrast(1.2);
         }
 
         .container {
@@ -227,6 +235,9 @@ if (isset($_GET['view'])) {
             font-weight: 700;
             margin-bottom: 10px;
             color: white;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .card-header p {
@@ -257,7 +268,7 @@ if (isset($_GET['view'])) {
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 15px 20px 15px 50px; /* Make space for icon */
+            padding: 15px 20px 15px 50px;
             border: 1px solid var(--border-color);
             background-color: rgba(0,0,0,0.2);
             border-radius: 12px;
@@ -316,6 +327,17 @@ if (isset($_GET['view'])) {
             box-shadow: 0 6px 20px rgba(0, 170, 255, 0.4);
         }
 
+        .btn-accent {
+            background: var(--accent-color);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-accent:hover {
+            background: #e55a5a;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
         .btn-outline {
             background: transparent;
             color: var(--primary-color);
@@ -335,7 +357,6 @@ if (isset($_GET['view'])) {
             background: var(--primary-color);
             color: white;
         }
-
 
         /* Alerts */
         .alert {
@@ -487,6 +508,11 @@ if (isset($_GET['view'])) {
             border-radius: 15px;
             padding: 25px;
             border: 1px solid var(--border-color);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card .icon { font-size: 2rem; color: var(--primary-color); margin-bottom: 15px; }
@@ -508,325 +534,540 @@ if (isset($_GET['view'])) {
         .profile-buttons .edit-mode-btn, .profile-buttons.editing .view-mode-btn { display: none; }
         .profile-buttons.editing .edit-mode-btn { display: inline-block; }
 
+        /* Welcome Page Styles */
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 40px 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                    linear-gradient(to bottom, rgba(13, 15, 23, 0.9), rgba(13, 15, 23, 0.7)),
+                    url('https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') center center/cover;
+            z-index: -1;
+            filter: brightness(0.7) contrast(1.2);
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.2;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .hero h1 span {
+            color: var(--primary-color);
+            display: block;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            color: var(--text-light);
+            opacity: 0.9;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 80px 0;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 170, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            color: var(--primary-color);
+            font-size: 2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .gym-image {
+            width: 100%;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 60px 0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .gym-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .gym-image:hover img {
+            transform: scale(1.05);
+        }
 
         @media (max-width: 768px) {
-            body { background-attachment: scroll; /* Use scroll on mobile for performance */ }
-            .dashboard-header { flex-direction: column; text-align: center; }
-            .user-info { margin-bottom: 20px; justify-content: center; }
-            .nav-tabs { justify-content: center; }
-            .row { flex-direction: column; }
-            .profile-field .edit-mode { width: 100%; }
-            .profile-field p { flex-direction: column; align-items: flex-start;}
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .cta-buttons .btn {
+                width: 100%;
+            }
+
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-info {
+                margin-bottom: 20px;
+                justify-content: center;
+            }
+
+            .nav-tabs {
+                justify-content: center;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+
+            .profile-field .edit-mode {
+                width: 100%;
+            }
+
+            .profile-field p {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .gym-image {
+                height: 250px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div style="max-width: <?php echo ($view === 'dashboard' || $view === 'register') ? '1000px' : '500px'; ?>; margin: auto; transition: max-width 0.5s ease;">
-        <?php
-        // Display general error from other processes
-        if (isset($error)): ?>
-            <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($error) ?></div>
-        <?php endif; ?>
+    <?php if (isset($error)): ?>
+        <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
-        <?php
-        // Display session-based success/error messages (e.g., from profile update)
-        if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($_SESSION['error']) ?></div>
-            <?php
-            unset($_SESSION['error']);
-        endif;
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> <?= htmlspecialchars($_SESSION['error']) ?></div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($_SESSION['success']) ?></div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+    <!-- Welcome Page -->
+    <?php if ($view === 'home'): ?>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Transform Your Body <span>PowerHouse Gym</span></h1>
+                <p>Join our state-of-the-art fitness center with professional trainers, premium equipment, and a supportive community.</p>
+
+                <div class="cta-buttons">
+                    <a href="?view=login" class="btn btn-primary">Login to Your Account</a>
+                    <a href="?view=register" class="btn btn-accent">Create New Account</a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <h3>Premium Equipment</h3>
+                    <p>Access the latest fitness equipment from top brands for a complete workout experience.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Expert Trainers</h3>
+                    <p>Our certified trainers will guide you to achieve your fitness goals with personalized plans.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <h3>Flexible Scheduling</h3>
+                    <p>Work out anytime with our 24/7 access. Book classes and sessions through our easy-to-use app.</p>
+                </div>
+            </div>
+
+            <div class="gym-image">
+                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Gym Interior">
+            </div>
+        </section>
+    <?php endif; ?>
+
+    <?php if ($view === 'register'): ?>
+        <div class="card">
+            <div class="card-header">
+                <h1>Join PowerHouse Gym</h1>
+                <p>Create your account to start your fitness journey</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="name">Full Name</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="name" name="name" required placeholder="John Doe">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <div class="input-wrapper">
+                                    <input type="email" id="email" name="email" required placeholder="john@example.com">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <div class="input-wrapper">
+                                    <input type="password" id="password" name="password" required minlength="6" placeholder="••••••">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number (Optional)</label>
+                                <div class="input-wrapper">
+                                    <input type="tel" id="phone" name="phone" placeholder="(123) 456-7890">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="secret_code">Create Secret Recovery Code</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="secret_code" name="secret_code" required placeholder="A memorable word or phrase">
+                                    <i class="fas fa-key"></i>
+                                </div>
+                                <small style="color: var(--text-muted); font-size: 0.8rem;">This is for password recovery. Keep it safe!</small>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label>Select Your Membership</label>
+                                <div class="membership-options">
+                                    <div class="membership-card" onclick="selectMembership(this, 'Basic')">
+                                        <h3>Basic</h3>
+                                        <div class="membership-price">$29</div>
+                                    </div>
+                                    <div class="membership-card" onclick="selectMembership(this, 'Premium')">
+                                        <h3>Premium</h3>
+                                        <div class="membership-price">$49</div>
+                                    </div>
+                                    <div class="membership-card" onclick="selectMembership(this, 'VIP')">
+                                        <h3>VIP</h3>
+                                        <div class="membership-price">$99</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="membership" name="membership" value="Premium">
+                            </div>
+                            <div class="membership-features" id="feature-list">
+                                <h4 style="color: white; margin-top: 20px;">Premium Plan Features:</h4>
+                                <ul>
+                                    <li>Access to all gym facilities</li>
+                                    <li>Unlimited group classes</li>
+                                    <li>1 free personal training session per month</li>
+                                    <li>Sauna and steam room access</li>
+                                    <li>Nutrition consultation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 30px;">
+                        <button type="submit" name="register" class="btn btn-primary">Create Account</button>
+                    </div>
+                    <div class="form-links">
+                        <p>Already have an account? <a href="?view=login">Login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($view === 'login'): ?>
+        <div class="card">
+            <div class="card-header">
+                <h1>Welcome Back!</h1>
+                <p>Login to access your dashboard</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="login-email" name="email" required placeholder="john@example.com">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="login-password" name="password" required placeholder="••••••">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" name="login" class="btn btn-primary">Login</button>
+                    </div>
+                    <div class="form-links">
+                        <p>Forgot your password? <a href="?view=forgot">Recover Account</a></p>
+                        <p>Don't have an account? <a href="?view=register">Register Now</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($view === 'forgot'): ?>
+        <div class="card">
+            <div class="card-header">
+                <h1>Password Recovery</h1>
+                <p>Use your secret code to reset your password</p>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="forgot-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="forgot-email" name="email" required placeholder="Your registered email">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="forgot-secret">Your Secret Code</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="forgot-secret" name="secret_code" required placeholder="Your recovery code">
+                            <i class="fas fa-key"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" name="verify" class="btn btn-primary">Verify Identity</button>
+                    </div>
+                    <div class="form-links">
+                        <p>Remember your password? <a href="?view=login">Login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($view === 'reset'): ?>
+        <div class="card">
+            <div class="card-header">
+                <h1>Reset Password</h1>
+                <p>Set a new, strong password for your account</p>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="reset-form">
+                    <div class="form-group">
+                        <label for="new-password">New Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="new-password" name="password" required minlength="6" placeholder="Enter new password">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="confirm-password" name="confirm_password" required minlength="6" placeholder="Confirm new password">
+                            <i class="fas fa-check-double"></i>
+                        </div>
+                        <div id="password-match-msg"></div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" name="reset" id="reset-button" class="btn btn-primary">Reset Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($view === 'dashboard' && isset($_SESSION['user'])):
+        $user = $_SESSION['user'];
         ?>
-
-        <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($_SESSION['success']) ?></div>
-            <?php
-            unset($_SESSION['success']);
-            ?>
-        <?php endif; ?>
-
-        <?php if ($view === 'register'): ?>
-            <div class="card">
-                <div class="card-header">
-                    <h1>Join PowerHouse Gym</h1>
-                    <p>Create your account to start your fitness journey</p>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <div class="row">
-                            <div class="col">
-                                <div class="form-group">
-                                    <label for="name">Full Name</label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="name" name="name" required placeholder="John Doe">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Email Address</label>
-                                    <div class="input-wrapper">
-                                        <input type="email" id="email" name="email" required placeholder="john@example.com">
-                                        <i class="fas fa-envelope"></i>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password">Password</label>
-                                    <div class="input-wrapper">
-                                        <input type="password" id="password" name="password" required minlength="6" placeholder="••••••">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="phone">Phone Number (Optional)</label>
-                                    <div class="input-wrapper">
-                                        <input type="tel" id="phone" name="phone" placeholder="(123) 456-7890">
-                                        <i class="fas fa-phone"></i>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="secret_code">Create Secret Recovery Code</label>
-                                    <div class="input-wrapper">
-                                        <input type="text" id="secret_code" name="secret_code" required placeholder="A memorable word or phrase">
-                                        <i class="fas fa-key"></i>
-                                    </div>
-                                    <small style="color: var(--text-muted); font-size: 0.8rem;">This is for password recovery. Keep it safe!</small>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="form-group">
-                                    <label>Select Your Membership</label>
-                                    <div class="membership-options">
-                                        <div class="membership-card" onclick="selectMembership(this, 'Basic')">
-                                            <h3>Basic</h3>
-                                            <div class="membership-price">$29</div>
-                                        </div>
-                                        <div class="membership-card" onclick="selectMembership(this, 'Premium')">
-                                            <h3>Premium</h3>
-                                            <div class="membership-price">$49</div>
-                                        </div>
-                                        <div class="membership-card" onclick="selectMembership(this, 'VIP')">
-                                            <h3>VIP</h3>
-                                            <div class="membership-price">$99</div>
-                                        </div>
-                                    </div>
-                                    <input type="hidden" id="membership" name="membership" value="Premium">
-                                </div>
-                                <div class="membership-features" id="feature-list">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-top: 30px;">
-                            <button type="submit" name="register" class="btn btn-primary">Create Account</button>
-                        </div>
-                        <div class="form-links">
-                            <p>Already have an account? <a href="?view=login">Login</a></p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($view === 'login'): ?>
-            <div class="card">
-                <div class="card-header">
-                    <h1>Welcome Back!</h1>
-                    <p>Login to access your dashboard</p>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <div class="form-group">
-                            <label for="login-email">Email Address</label>
-                            <div class="input-wrapper">
-                                <input type="email" id="login-email" name="email" required placeholder="john@example.com">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="login-password">Password</label>
-                            <div class="input-wrapper">
-                                <input type="password" id="login-password" name="password" required placeholder="••••••">
-                                <i class="fas fa-lock"></i>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" name="login" class="btn btn-primary">Login</button>
-                        </div>
-                        <div class="form-links">
-                            <p>Forgot your password? <a href="?view=forgot">Recover Account</a></p>
-                            <p>Don't have an account? <a href="?view=register">Register Now</a></p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($view === 'forgot'): ?>
-            <div class="card">
-                <div class="card-header">
-                    <h1>Password Recovery</h1>
-                    <p>Use your secret code to reset your password</p>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <div class="form-group">
-                            <label for="forgot-email">Email Address</label>
-                            <div class="input-wrapper">
-                                <input type="email" id="forgot-email" name="email" required placeholder="Your registered email">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="forgot-secret">Your Secret Code</label>
-                            <div class="input-wrapper">
-                                <input type="text" id="forgot-secret" name="secret_code" required placeholder="Your recovery code">
-                                <i class="fas fa-key"></i>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" name="verify" class="btn btn-primary">Verify Identity</button>
-                        </div>
-                        <div class="form-links">
-                            <p>Remember your password? <a href="?view=login">Login</a></p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <?php if ($view === 'reset'): ?>
-            <div class="card">
-                <div class="card-header">
-                    <h1>Reset Password</h1>
-                    <p>Set a new, strong password for your account</p>
-                </div>
-                <div class="card-body">
-                    <form method="POST" id="reset-form">
-                        <div class="form-group">
-                            <label for="new-password">New Password</label>
-                            <div class="input-wrapper">
-                                <input type="password" id="new-password" name="password" required minlength="6" placeholder="Enter new password">
-                                <i class="fas fa-lock"></i>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirm-password">Confirm New Password</label>
-                            <div class="input-wrapper">
-                                <input type="password" id="confirm-password" name="confirm_password" required minlength="6" placeholder="Confirm new password">
-                                <i class="fas fa-check-double"></i>
-                            </div>
-                            <div id="password-match-msg"></div>
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" name="reset" id="reset-button" class="btn btn-primary">Reset Password</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        <?php endif; ?>
-
-
-        <?php if ($view === 'dashboard' && isset($_SESSION['user'])):
-            $user = $_SESSION['user'];
-            ?>
-            <div id="dashboard-section">
-                <div class="dashboard-header">
-                    <div class="user-info">
-                        <div class="user-avatar"><?= htmlspecialchars(substr($user['name'], 0, 1)) ?></div>
-                        <div>
-                            <h2 id="user-name"><?= htmlspecialchars($user['name']) ?></h2>
-                            <p id="user-email"><?= htmlspecialchars($user['email']) ?></p>
-                        </div>
-                    </div>
+        <div id="dashboard-section">
+            <div class="dashboard-header">
+                <div class="user-info">
+                    <div class="user-avatar"><?= htmlspecialchars(substr($user['name'], 0, 1)) ?></div>
                     <div>
-                        <form method="POST">
-                            <button name="logout" class="btn btn-outline">
-                                <i class="fas fa-sign-out-alt"></i> Logout
-                            </button>
-                        </form>
+                        <h2 id="user-name"><?= htmlspecialchars($user['name']) ?></h2>
+                        <p id="user-email"><?= htmlspecialchars($user['email']) ?></p>
                     </div>
                 </div>
+                <div>
+                    <form method="POST">
+                        <button name="logout" class="btn btn-outline">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
 
-                <div class="card">
-                    <div class="card-body">
-                        <div class="nav-tabs">
-                            <div class="nav-tab" data-tab="dashboard-tab"><i class="fas fa-tachometer-alt"></i>&nbsp; Dashboard</div>
-                            <div class="nav-tab" data-tab="profile-tab"><i class="fas fa-user-circle"></i>&nbsp; Profile</div>
-                            <div class="nav-tab" data-tab="membership-tab"><i class="fas fa-id-card"></i>&nbsp; Membership</div>
-                        </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="nav-tabs">
+                        <div class="nav-tab" data-tab="dashboard-tab"><i class="fas fa-tachometer-alt"></i>&nbsp; Dashboard</div>
+                        <div class="nav-tab" data-tab="profile-tab"><i class="fas fa-user-circle"></i>&nbsp; Profile</div>
+                        <div class="nav-tab" data-tab="membership-tab"><i class="fas fa-id-card"></i>&nbsp; Membership</div>
+                    </div>
 
-                        <div id="dashboard-tab" class="tab-content">
-                            <div class="dashboard-stats">
-                                <div class="stat-card">
-                                    <div class="icon"><i class="fas fa-dumbbell"></i></div>
-                                    <h3>Workouts This Week</h3>
-                                    <div class="stat-value">4</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="icon"><i class="fas fa-chart-line"></i></div>
-                                    <h3>Current Streak</h3>
-                                    <div class="stat-value">12d</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="icon"><i class="fas fa-fire"></i></div>
-                                    <h3>Calories Burned</h3>
-                                    <div class="stat-value">2,450</div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="icon"><i class="fas fa-trophy"></i></div>
-                                    <h3>Goals Achieved</h3>
-                                    <div class="stat-value">5</div>
-                                </div>
+                    <div id="dashboard-tab" class="tab-content">
+                        <div class="dashboard-stats">
+                            <div class="stat-card">
+                                <div class="icon"><i class="fas fa-dumbbell"></i></div>
+                                <h3>Workouts This Week</h3>
+                                <div class="stat-value">4</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="icon"><i class="fas fa-chart-line"></i></div>
+                                <h3>Current Streak</h3>
+                                <div class="stat-value">12d</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="icon"><i class="fas fa-fire"></i></div>
+                                <h3>Calories Burned</h3>
+                                <div class="stat-value">2,450</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="icon"><i class="fas fa-trophy"></i></div>
+                                <h3>Goals Achieved</h3>
+                                <div class="stat-value">5</div>
                             </div>
                         </div>
 
-                        <div id="profile-tab" class="tab-content">
-                            <div class="detail-section">
-                                <h3>Your Information</h3>
-                                <form method="POST" id="profile-form">
-                                    <div class="profile-field" id="name-field">
-                                        <p>
-                                            <strong>Full Name:</strong>
-                                            <span class="view-mode"><?= htmlspecialchars($user['name']) ?></span>
-                                            <input type="text" name="name" class="edit-mode form-group" value="<?= htmlspecialchars($user['name']) ?>" required>
-                                        </p>
-                                    </div>
-                                    <div class="profile-field" id="phone-field">
-                                        <p>
-                                            <strong>Phone Number:</strong>
-                                            <span class="view-mode"><?= htmlspecialchars($user['phone'] ?: 'Not Provided') ?></span>
-                                            <input type="tel" name="phone" class="edit-mode form-group" value="<?= htmlspecialchars($user['phone']) ?>" placeholder="Add phone number">
-                                        </p>
-                                    </div>
+                        <div class="gym-image">
+                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Gym Equipment">
+                        </div>
+                    </div>
+
+                    <div id="profile-tab" class="tab-content">
+                        <div class="detail-section">
+                            <h3>Your Information</h3>
+                            <form method="POST" id="profile-form">
+                                <div class="profile-field" id="name-field">
                                     <p>
-                                        <strong>Email Address:</strong>
-                                        <span><?= htmlspecialchars($user['email']) ?></span>
+                                        <strong>Full Name:</strong>
+                                        <span class="view-mode"><?= htmlspecialchars($user['name']) ?></span>
+                                        <input type="text" name="name" class="edit-mode form-group" value="<?= htmlspecialchars($user['name']) ?>" required>
                                     </p>
+                                </div>
+                                <div class="profile-field" id="phone-field">
+                                    <p>
+                                        <strong>Phone Number:</strong>
+                                        <span class="view-mode"><?= htmlspecialchars($user['phone'] ?: 'Not Provided') ?></span>
+                                        <input type="tel" name="phone" class="edit-mode form-group" value="<?= htmlspecialchars($user['phone']) ?>" placeholder="Add phone number">
+                                    </p>
+                                </div>
+                                <p>
+                                    <strong>Email Address:</strong>
+                                    <span><?= htmlspecialchars($user['email']) ?></span>
+                                </p>
 
-                                    <div class="btn-group profile-buttons" style="margin-top:30px;">
-                                        <button type="button" class="btn btn-primary view-mode-btn" id="edit-profile-btn">Edit Profile</button>
-                                        <button type="submit" name="update_profile" class="btn btn-primary edit-mode-btn">Save Changes</button>
-                                        <button type="button" class="btn btn-secondary edit-mode-btn" id="cancel-edit-btn">Cancel</button>
-                                    </div>
-                                </form>
-                            </div>
+                                <div class="btn-group profile-buttons" style="margin-top:30px;">
+                                    <button type="button" class="btn btn-primary view-mode-btn" id="edit-profile-btn">Edit Profile</button>
+                                    <button type="submit" name="update_profile" class="btn btn-primary edit-mode-btn">Save Changes</button>
+                                    <button type="button" class="btn btn-secondary edit-mode-btn" id="cancel-edit-btn">Cancel</button>
+                                </div>
+                            </form>
                         </div>
+                    </div>
 
-                        <div id="membership-tab" class="tab-content">
-                            <div class="detail-section">
-                                <h3>Membership Details</h3>
-                                <p><strong>Plan:</strong> <span style="color:var(--primary-color); font-weight: bold;"><?= htmlspecialchars($user['membership']) ?></span></p>
-                                <p><strong>Status:</strong> <span style="color: var(--success);">Active</span></p>
-                                <p><strong>Member Since:</strong> <span><?= date('F j, Y', strtotime($user['join_date'])) ?></span></p>
-                                <p><strong>Next Billing Date:</strong> <span><?= date('F j, Y', strtotime('+1 month')) ?></span></p>
-                                <p><strong>Payment Method:</strong> <span>Credit Card **** 1234</span></p>
-                                <button class="btn btn-primary">Upgrade Membership</button>
-                            </div>
+                    <div id="membership-tab" class="tab-content">
+                        <div class="detail-section">
+                            <h3>Membership Details</h3>
+                            <p><strong>Plan:</strong> <span style="color:var(--primary-color); font-weight: bold;"><?= htmlspecialchars($user['membership']) ?></span></p>
+                            <p><strong>Status:</strong> <span style="color: var(--success);">Active</span></p>
+                            <p><strong>Member Since:</strong> <span><?= date('F j, Y', strtotime($user['join_date'])) ?></span></p>
+                            <p><strong>Next Billing Date:</strong> <span><?= date('F j, Y', strtotime('+1 month')) ?></span></p>
+                            <p><strong>Payment Method:</strong> <span>Credit Card **** 1234</span></p>
+                            <button class="btn btn-primary">Upgrade Membership</button>
                         </div>
                     </div>
                 </div>
             </div>
-        <?php endif; ?>
-    </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <script>
