@@ -137,6 +137,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ".$_SERVER['PHP_SELF']);
         exit;
     }
+    // NEW: Account deletion handler
+    elseif (isset($_POST['delete_account'])) {
+        if (!isset($_SESSION['user'])) {
+            header("Location: ".$_SERVER['PHP_SELF']."?view=login");
+            exit;
+        }
+
+        $userId = $_SESSION['user']['id'];
+
+        try {
+            // Delete user from database
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+
+            // Destroy session and redirect
+            session_destroy();
+            $_SESSION['success'] = "Your account has been permanently deleted.";
+            header("Location: ".$_SERVER['PHP_SELF']);
+            exit;
+        } catch (PDOException $e) {
+            $_SESSION['error'] = "Account deletion failed: " . $e->getMessage();
+            header("Location: ".$_SERVER['PHP_SELF']."?view=dashboard&tab=profile");
+            exit;
+        }
+    }
 }
 
 // Determine current view
@@ -533,6 +558,21 @@ if (isset($_GET['view'])) {
 
         .profile-buttons .edit-mode-btn, .profile-buttons.editing .view-mode-btn { display: none; }
         .profile-buttons.editing .edit-mode-btn { display: inline-block; }
+
+        /* Danger Zone */
+        .danger-zone {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .danger-zone h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+        .danger-zone p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
 
         /* Welcome Page Styles */
         .hero {
@@ -1050,6 +1090,17 @@ if (isset($_GET['view'])) {
                                     <button type="button" class="btn btn-secondary edit-mode-btn" id="cancel-edit-btn">Cancel</button>
                                 </div>
                             </form>
+
+                            <!-- NEW: Account Deletion Section -->
+                            <div class="danger-zone">
+                                <h3>Danger Zone</h3>
+                                <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                                <form method="POST" id="delete-form">
+                                    <button type="button" id="delete-account-btn" class="btn btn-accent">
+                                        <i class="fas fa-trash-alt"></i> Delete My Account
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -1188,6 +1239,25 @@ if (isset($_GET['view'])) {
                     }
                 });
             }
+        }
+
+        // NEW: Account Deletion Confirmation
+        const deleteAccountBtn = document.getElementById('delete-account-btn');
+        if (deleteAccountBtn) {
+            deleteAccountBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to permanently delete your account? This action cannot be undone!')) {
+                    // Create a hidden input for the delete action
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'delete_account';
+                    input.value = '1';
+
+                    // Append to form and submit
+                    const form = document.getElementById('delete-form');
+                    form.appendChild(input);
+                    form.submit();
+                }
+            });
         }
     });
 </script>
